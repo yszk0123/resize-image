@@ -8,5 +8,5 @@
     "strict": true,
     "esModuleInterop": true
   },
-  "exclude": [".cache", "dist", "node_modules"]
+  "exclude": [".cache", "examples", "dist", "node_modules"]
 }

@@ -3,7 +3,7 @@
  * cf. https://qiita.com/komakomako/items/8efd4184f6d7cf1363f2#comment-b4821ac62eea8fea0dfa
  * cf. https://codepen.io/anon/pen/wrzgQL
  */
-import { resizeImage } from './resizeImage';
+import { resizeImage } from '../src';
 
 const THUMBNAIL_SIZE = 500;
 
