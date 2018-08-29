@@ -3,10 +3,12 @@
  * cf. https://qiita.com/komakomako/items/8efd4184f6d7cf1363f2#comment-b4821ac62eea8fea0dfa
  * cf. https://codepen.io/anon/pen/wrzgQL
  */
-const isSupportedImage = file =>
-  file.type === 'image/jpeg' || file.type === 'image/png';
+import { resizeImage } from './utils/resizeImage';
 
 const THUMBNAIL_SIZE = 500;
+
+const isSupportedImage = file =>
+  file.type === 'image/jpeg' || file.type === 'image/png';
 
 class App {
   private blob: Blob | null = null;
@@ -36,19 +38,10 @@ class App {
     image.src = URL.createObjectURL(file);
   };
 
-  private handleLoadImage = (image: HTMLImageElement) => {
-    const ratio = image.naturalWidth / image.naturalHeight;
-    const canvas = document.createElement('canvas');
-    canvas.width = ratio >= 1 ? THUMBNAIL_SIZE : THUMBNAIL_SIZE * ratio;
-    canvas.height = ratio < 1 ? THUMBNAIL_SIZE : THUMBNAIL_SIZE / ratio;
-
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(blob => {
-      this.blob = blob;
-      this.renderPreview(blob);
-    });
+  private handleLoadImage = async (image: HTMLImageElement) => {
+    const blob = await resizeImage(image, { maxSize: THUMBNAIL_SIZE });
+    this.blob = blob;
+    this.renderPreview(blob);
   };
 
   private handleUpload = () => {
