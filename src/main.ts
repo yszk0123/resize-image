@@ -1,14 +1,16 @@
+/**
+ * cf. https://qiita.com/komakomako/items/8efd4184f6d7cf1363f2
+ * cf. https://qiita.com/komakomako/items/8efd4184f6d7cf1363f2#comment-b4821ac62eea8fea0dfa
+ * cf. https://codepen.io/anon/pen/wrzgQL
+ */
 import $ from 'jquery';
 
 const isSupportedImage = file =>
   file.type === 'image/jpeg' || file.type === 'image/png';
 
-const MAX_THUMBNAIL_WIDTH = 500;
-const MAX_THUMBNAIL_HEIGHT = 500;
-const UPLOAD_URL = 'http://example.com';
+const THUMBNAIL_SIZE = 500;
 
 class App {
-  private file: File | null = null;
   private blob: Blob | null = null;
 
   constructor() {
@@ -21,86 +23,49 @@ class App {
     });
   }
 
-  handleChange = element => {
+  private handleChange = element => {
     const file = $(element).prop('files')[0];
     if (!isSupportedImage(file)) {
       return;
     }
 
-    this.file = file;
-
-    const reader = new FileReader();
-    reader.onload = e => {
-      const image = new Image();
-      image.onload = () => this.handleLoadImage(image);
-      image.src = (e.target as any).result;
-    };
-    reader.readAsDataURL(file);
+    const image = new Image();
+    image.onload = () => this.handleLoadImage(image);
+    image.src = URL.createObjectURL(file);
   };
 
-  handleLoadImage = (image: HTMLImageElement) => {
+  private handleLoadImage = (image: HTMLImageElement) => {
     let width;
     let height;
-    if (image.width > image.height) {
-      // 横長の画像は横のサイズを指定値にあわせる
-      const ratio = image.height / image.width;
-      width = MAX_THUMBNAIL_WIDTH;
-      height = MAX_THUMBNAIL_WIDTH * ratio;
-    } else {
-      // 縦長の画像は縦のサイズを指定値にあわせる
-      const ratio = image.width / image.height;
-      width = MAX_THUMBNAIL_HEIGHT * ratio;
-      height = MAX_THUMBNAIL_HEIGHT;
-    }
+    const ratio = image.naturalWidth / image.naturalHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = ratio >= 1 ? THUMBNAIL_SIZE : THUMBNAIL_SIZE * ratio;
+    canvas.height = ratio < 1 ? THUMBNAIL_SIZE : THUMBNAIL_SIZE / ratio;
 
-    const canvas = $('#canvas')
-      .attr('width', width)
-      .attr('height', height);
-
-    const ctx = canvas[0].getContext('2d');
+    const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    // canvasからbase64画像データを取得
-    const base64 = canvas.get(0).toDataURL('image/jpeg');
-    // base64からBlobデータを作成
-    let barr, bin, i, len;
-    bin = atob(base64.split('base64,')[1]);
-    len = bin.length;
-    barr = new Uint8Array(len);
-    i = 0;
-    while (i < len) {
-      barr[i] = bin.charCodeAt(i);
-      i++;
-    }
-    const blob = new Blob([barr], { type: 'image/jpeg' });
-    console.log(blob);
-    this.blob = blob;
+    canvas.toBlob(blob => {
+      this.blob = blob;
+      this.renderPreview(blob);
+    });
   };
 
-  handleUpload = () => {
-    if (!this.file || !this.blob) {
+  private handleUpload = () => {
+    if (!this.blob) {
       return;
     }
 
     const fd = new FormData();
     fd.append('file', this.blob);
-
-    $.ajax({
-      url: UPLOAD_URL,
-      type: 'POST',
-      dataType: 'json',
-      data: fd,
-      processData: false,
-      contentType: false
-    })
-      .then(() => {
-        console.log('success');
-      })
-      .catch(error => {
-        console.error(error);
-      });
   };
+
+  private renderPreview(blob: Blob) {
+    const preview = new Image();
+    preview.src = URL.createObjectURL(blob);
+    document.body.appendChild(preview);
+  }
 }
 
 $(() => {
