@@ -17,11 +17,15 @@ export const resizeImage = (
   canvas.width = ratio >= 1 ? maxSize : maxSize * ratio;
   canvas.height = ratio < 1 ? maxSize : maxSize / ratio;
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
   return Promise.race([
-    new Promise(resolve => canvas.toBlob(resolve)),
+    new Promise(resolve =>
+      canvas.toBlob(blob => {
+        if (blob) resolve(blob);
+      })
+    ),
     rejectAfter(timeout) as any
   ]);
 };
