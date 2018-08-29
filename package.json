@@ -1,0 +1,18 @@
+{
+  "name": "resize-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel src/index.html"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.0",
+    "parcel-bundler": "^1.9.7",
+    "prettier": "^1.14.2",
+    "typescript": "^3.0.1"
+  },
+  "dependencies": {
+    "jquery": "^3.3.1"
+  }
+}
